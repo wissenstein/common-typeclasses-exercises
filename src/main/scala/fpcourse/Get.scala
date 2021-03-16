@@ -7,7 +7,11 @@ case class Get[A](run: List[Byte] => Either[String, (List[Byte], A)])
 object Get {
   def skip(n: Int): Get[Unit] = ???
   def bytesRead: Get[Long] = ???
-  def isEmpty: Get[Boolean] = ???
+  
+  def isEmpty: Get[Boolean] = Get { bytes =>
+    Right((bytes, bytes.isEmpty))
+  }
+
   def getByte: Get[Byte] = Get { bytes =>
     if(bytes.isEmpty) Left("Insufficient input")
     else Right((bytes.tail, bytes.head))

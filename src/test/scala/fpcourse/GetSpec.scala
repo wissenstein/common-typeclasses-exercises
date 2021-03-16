@@ -43,4 +43,14 @@ class GetSpec extends AnyFunSuite with Matchers {
     val bytes = List[Byte](5)
     Get.isEmpty.run(bytes) shouldBe(Right((bytes, false)))
   }
+
+  test("skip fails on insufficient input") {
+    val bytes = List[Byte](5, 3)
+    Get.skip(3).run(bytes) shouldBe(Left("Insufficient input"))
+  }
+
+  test("skip consumes bytes and returns no result") {
+    val bytes = List[Byte](5, 3, 8, 1)
+    Get.skip(3).run(bytes) shouldBe(Right((List[Byte](1), ())))
+  }
 }

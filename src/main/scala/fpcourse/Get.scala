@@ -5,9 +5,11 @@ import java.nio.{ByteBuffer, ByteOrder}
 case class Get[A](run: List[Byte] => Either[String, (List[Byte], A)])
 
 object Get {
-  def skip(n: Int): Get[Unit] = ???
-  def bytesRead: Get[Long] = ???
-  
+  def skip(n: Int): Get[Unit] = Get { bytes =>
+    if(bytes.length < n) Left("Insufficient input")
+    else Right((bytes.drop(n), ()))
+  }
+
   def isEmpty: Get[Boolean] = Get { bytes =>
     Right((bytes, bytes.isEmpty))
   }

@@ -23,4 +23,14 @@ class GetSpec extends AnyFunSuite with Matchers {
     val bytes = List[Byte](3, 1, 2, 1, 5, 3, 2)
     Get.getIntLE.run(bytes) shouldBe(Right(List[Byte](5, 3, 2), 16908547))
   }
+
+  test("getByte fails on insufficient input") {
+    val bytes = List[Byte]()
+    Get.getByte.run(bytes) shouldBe(Left("Insufficient input"))
+  }
+
+  test("getByte should read a byte") {
+    val bytes = List[Byte](4, 3, 2)
+    Get.getByte.run(bytes) shouldBe(Right(List[Byte](3, 2), 4))
+  }
 }

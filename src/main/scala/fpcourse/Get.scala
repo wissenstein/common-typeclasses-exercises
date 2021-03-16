@@ -8,7 +8,11 @@ object Get {
   def skip(n: Int): Get[Unit] = ???
   def bytesRead: Get[Long] = ???
   def isEmpty: Get[Boolean] = ???
-  def getByte: Get[Byte] = ???
+  def getByte: Get[Byte] = Get { bytes =>
+    if(bytes.isEmpty) Left("Insufficient input")
+    else Right((bytes.tail, bytes.head))
+  }
+
   def getIntBE: Get[Int] = Get { bytes =>
     if(bytes.length < 4) Left("Insufficient input")
     else {

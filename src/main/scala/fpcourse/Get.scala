@@ -17,7 +17,15 @@ object Get {
       Right((rest, n))
     }
   }
-  def getIntLE: Get[Int] = ???
+
+  def getIntLE: Get[Int] = Get { bytes =>
+    if(bytes.length < 4) Left("Insufficient input")
+    else {
+      val n = bytesToInt(bytes.take(4).toArray, ByteOrder.LITTLE_ENDIAN)
+      val rest = bytes.drop(4)
+      Right((rest, n))
+    }
+  }
 
   private def bytesToInt(fourBytes: Array[Byte], order: ByteOrder): Int = {
     val bb = ByteBuffer.allocate(4).order(order)

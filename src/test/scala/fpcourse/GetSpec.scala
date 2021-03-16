@@ -1,9 +1,16 @@
 package fpcourse
 
+import cats.laws.discipline.MonadErrorTests
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
+import org.scalatest.prop.Configuration
+import org.typelevel.discipline.scalatest.FunSuiteDiscipline
+import cats._
+import cats.implicits._
+import cats.kernel.laws.discipline.EqTests
+import org.scalacheck.{Arbitrary, Gen}
 
-class GetSpec extends AnyFunSuite with Matchers {
+class GetSpec extends AnyFunSuite with Matchers with Configuration with FunSuiteDiscipline with Generators {
   test("getIntBE fails on insufficient input") {
     val bytes = List[Byte](3, 1, 2)
     Get.getIntBE.run(bytes) shouldBe(Left("Insufficient input"))
@@ -53,4 +60,7 @@ class GetSpec extends AnyFunSuite with Matchers {
     val bytes = List[Byte](5, 3, 8, 1)
     Get.skip(3).run(bytes) shouldBe(Right((List[Byte](1), ())))
   }
+
+  checkAll("Eq[Get[Int]]", EqTests[Get[Int]].eqv)
+  checkAll("MonadError[Get, String]", MonadErrorTests[Get, String].monadError[Int, Int, Int])
 }

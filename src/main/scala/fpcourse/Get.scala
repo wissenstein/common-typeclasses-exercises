@@ -24,51 +24,37 @@ object Get {
    * TODO 1
    * Consumes n bytes of input parsing no value.
    */
-  def skip(n: Int): Get[Unit] = Get { bytes =>
-    if(bytes.length < n) Left("Insufficient input")
-    else Right((bytes.drop(n), ()))
-  }
+  def skip(n: Int): Get[Unit] = ???
 
   /**
    * TODO 2
    * True if the input is fully consumed
    */
-  def isEmpty: Get[Boolean] = Get { bytes =>
-    Right((bytes, bytes.isEmpty))
-  }
+  def isEmpty: Get[Boolean] = ???
 
   /**
    * TODO 3
    * Reads one byte from input
    */
-  def getByte: Get[Byte] = Get { bytes =>
-    if(bytes.isEmpty) Left("Insufficient input")
-    else Right((bytes.tail, bytes.head))
-  }
+  def getByte: Get[Byte] = ???
 
   /**
    * TODO 4
    * Reads an Int from input using Big Endian order.
    */
-  def getIntBE: Get[Int] = getByte.replicateA(4).map { bytes =>
-    bytesToIntUnsafe(bytes.toArray, ByteOrder.BIG_ENDIAN)
-  }
+  def getIntBE: Get[Int] = ???
 
   /**
    * TODO 5
    * Reads an Int from input using Little Endian order.
    */
-  def getIntLE: Get[Int] = getByte.replicateA(4).map { bytes =>
-    bytesToIntUnsafe(bytes.toArray, ByteOrder.LITTLE_ENDIAN)
-  }
+  def getIntLE: Get[Int] = ???
 
   /**
    * TODO 6
    * Reads a String of n characters from input.
    */
-  def getString(n: Int): Get[String] = getByte.replicateA(n).map { bytes =>
-    new String(bytes.toArray)
-  }
+  def getString(n: Int): Get[String] = ???
 
   /**
    * Helper function that turns four bytes into an Int. It doesn't check the
@@ -86,16 +72,9 @@ object Get {
    * Instance of monad error for Get.
    */
   implicit val monadGet: MonadError[Get, String] = new MonadError[Get, String] {
-    override def flatMap[A, B](fa: Get[A])(f: A => Get[B]): Get[B] = Get { bytes =>
-      fa.run(bytes) match {
-        case Right((remainingBytes, a)) => f(a).run(remainingBytes)
-        case Left(e) => Left(e)
-      }
-    }
+    override def flatMap[A, B](fa: Get[A])(f: A => Get[B]): Get[B] = ???
 
-    override def pure[A](x: A): Get[A] = Get { bytes =>
-      Right((bytes, x))
-    }
+    override def pure[A](x: A): Get[A] = ???
 
     override def tailRecM[A, B](a: A)(f: A => Get[Either[A, B]]): Get[B] = {
       Get { bytes =>
@@ -110,16 +89,9 @@ object Get {
       }
     }
 
-    override def raiseError[A](e: String): Get[A] = Get { _ =>
-      Left(e)
-    }
+    override def raiseError[A](e: String): Get[A] = ???
 
-    override def handleErrorWith[A](fa: Get[A])(f: String => Get[A]): Get[A] = Get { bytes =>
-      fa.run(bytes) match {
-        case r @ Right(_) => r
-        case Left(e) => f(e).run(bytes)
-      }
-    }
+    override def handleErrorWith[A](fa: Get[A])(f: String => Get[A]): Get[A] = ???
   }
 
   /**
@@ -127,25 +99,16 @@ object Get {
    * Instance of Eq for Get. A full comparison is impossible, so we just
    * compare on a given number of List[Byte] samples and assume that
    * if both Get compute the same result, they are equal.
+   *
+   * Hint: One possible way of doing this is to use scalacheck to build
+   * a generator of List[Byte], then sample it several times (e.g. 32)
+   * and check that running both Gets yields the same result every time.
    */
-  implicit def eqGet[A: Eq]: Eq[Get[A]] = Eq.instance { (g1, g2) =>
-    val nSamples = 32
-    val genBytes = Gen.listOf(Gen.choose(0, 255).map(_.toByte))
-    Iterator
-      .continually(genBytes.sample)
-      .take(nSamples)
-      .flatten
-      .forall(bs => g1.run(bs) === g2.run(bs))
-  }
+  implicit def eqGet[A: Eq]: Eq[Get[A]] = ???
 
   /**
    * TODO 9
    * Monoid instance for Get.
    */
-  implicit def monoid[A: Monoid]: Monoid[Get[A]] = new Monoid[Get[A]] {
-    override def empty: Get[A] = Monad[Get].pure(Monoid[A].empty)
-
-    override def combine(x: Get[A], y: Get[A]): Get[A] =
-      (x, y).mapN((a1, a2) => a1 |+| a2)
-  }
+  implicit def monoid[A: Monoid]: Monoid[Get[A]] = ???
 }

@@ -69,6 +69,10 @@ class GetSpec extends AnyFunSuite with Matchers with Configuration with FunSuite
     Get.getString(5).run(bytes) shouldBe(Right((List[Byte](2, 1), "happy")))
   }
 
+  /**
+   * TODO 10
+   * Write tests for instances of Monoid[Get[Int]], Eq[Get[Int]] and MonadError[Get, String]
+   */
   checkAll("Monoid[Get[Int]]", MonoidTests[Get[Int]].monoid)
   checkAll("Eq[Get[Int]]", EqTests[Get[Int]].eqv)
   checkAll("MonadError[Get, String]", MonadErrorTests[Get, String].monadError[Int, Int, Int])

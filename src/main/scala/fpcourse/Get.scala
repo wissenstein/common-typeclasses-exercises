@@ -5,6 +5,7 @@ import cats.implicits._
 import org.scalacheck.Gen
 
 import java.nio.{ByteBuffer, ByteOrder}
+import scala.util.Try
 
 case class Get[A](run: List[Byte] => Either[String, (List[Byte], A)])
 
@@ -23,22 +24,16 @@ object Get {
     else Right((bytes.tail, bytes.head))
   }
 
-  def getIntBE: Get[Int] = Get { bytes =>
-    if(bytes.length < 4) Left("Insufficient input")
-    else {
-      val n = bytesToInt(bytes.take(4).toArray, ByteOrder.BIG_ENDIAN)
-      val rest = bytes.drop(4)
-      Right((rest, n))
-    }
+  def getIntBE: Get[Int] = getByte.replicateA(4).map { bytes =>
+    bytesToInt(bytes.toArray, ByteOrder.BIG_ENDIAN)
   }
 
-  def getIntLE: Get[Int] = Get { bytes =>
-    if(bytes.length < 4) Left("Insufficient input")
-    else {
-      val n = bytesToInt(bytes.take(4).toArray, ByteOrder.LITTLE_ENDIAN)
-      val rest = bytes.drop(4)
-      Right((rest, n))
-    }
+  def getIntLE: Get[Int] = getByte.replicateA(4).map { bytes =>
+    bytesToInt(bytes.toArray, ByteOrder.LITTLE_ENDIAN)
+  }
+
+  def getString(n: Int): Get[String] = getByte.replicateA(n).map { bytes =>
+    new String(bytes.toArray)
   }
 
   private def bytesToInt(fourBytes: Array[Byte], order: ByteOrder): Int = {

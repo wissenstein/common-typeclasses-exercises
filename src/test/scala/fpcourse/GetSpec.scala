@@ -59,6 +59,16 @@ class GetSpec extends AnyFunSuite with Matchers with Configuration with FunSuite
     Get.skip(3).run(bytes) shouldBe(Right((List[Byte](1), ())))
   }
 
+  test("getString fails on insufficient input") {
+    val bytes = List[Byte](1, 6, 2, 1)
+    Get.getString(5).run(bytes) shouldBe(Left("Insufficient input"))
+  }
+
+  test("getString should read a string of N characters") {
+    val bytes = List[Byte](104, 97, 112, 112, 121, 2, 1)
+    Get.getString(5).run(bytes) shouldBe(Right((List[Byte](2, 1), "happy")))
+  }
+
   checkAll("Monoid[Get[Int]]", MonoidTests[Get[Int]].monoid)
   checkAll("Eq[Get[Int]]", EqTests[Get[Int]].eqv)
   checkAll("MonadError[Get, String]", MonadErrorTests[Get, String].monadError[Int, Int, Int])

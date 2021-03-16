@@ -7,7 +7,7 @@ import org.scalatest.prop.Configuration
 import org.typelevel.discipline.scalatest.FunSuiteDiscipline
 import cats._
 import cats.implicits._
-import cats.kernel.laws.discipline.EqTests
+import cats.kernel.laws.discipline.{EqTests, MonoidTests}
 import org.scalacheck.{Arbitrary, Gen}
 
 class GetSpec extends AnyFunSuite with Matchers with Configuration with FunSuiteDiscipline with Generators {
@@ -61,6 +61,7 @@ class GetSpec extends AnyFunSuite with Matchers with Configuration with FunSuite
     Get.skip(3).run(bytes) shouldBe(Right((List[Byte](1), ())))
   }
 
+  checkAll("Monoid[Get[Int]]", MonoidTests[Get[Int]].monoid)
   checkAll("Eq[Get[Int]]", EqTests[Get[Int]].eqv)
   checkAll("MonadError[Get, String]", MonadErrorTests[Get, String].monadError[Int, Int, Int])
 }

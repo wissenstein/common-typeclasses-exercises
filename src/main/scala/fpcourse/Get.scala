@@ -93,4 +93,11 @@ object Get {
       .flatten
       .forall(bs => g1.run(bs) === g2.run(bs))
   }
+
+  implicit def monoid[A: Monoid]: Monoid[Get[A]] = new Monoid[Get[A]] {
+    override def empty: Get[A] = Monad[Get].pure(Monoid[A].empty)
+
+    override def combine(x: Get[A], y: Get[A]): Get[A] =
+      (x, y).mapN((a1, a2) => a1 |+| a2)
+  }
 }

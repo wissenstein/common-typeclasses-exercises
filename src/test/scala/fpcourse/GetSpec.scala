@@ -1,14 +1,12 @@
 package fpcourse
 
+import cats.implicits._
+import cats.kernel.laws.discipline.{EqTests, MonoidTests}
 import cats.laws.discipline.MonadErrorTests
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.prop.Configuration
 import org.typelevel.discipline.scalatest.FunSuiteDiscipline
-import cats._
-import cats.implicits._
-import cats.kernel.laws.discipline.{EqTests, MonoidTests}
-import org.scalacheck.{Arbitrary, Gen}
 
 class GetSpec extends AnyFunSuite with Matchers with Configuration with FunSuiteDiscipline with Generators {
   test("getIntBE fails on insufficient input") {

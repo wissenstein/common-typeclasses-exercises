@@ -1,9 +1,10 @@
 package fpcourse
 
-import java.nio.{ByteBuffer, ByteOrder}
 import cats._
 import cats.implicits._
-import org.scalacheck.{Arbitrary, Gen}
+import org.scalacheck.Gen
+
+import java.nio.{ByteBuffer, ByteOrder}
 
 case class Get[A](run: List[Byte] => Either[String, (List[Byte], A)])
 

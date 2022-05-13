@@ -49,6 +49,8 @@ object Get {
   /**
    * TODO 4
    * Reads an Int from input using Big Endian order.
+   *
+   * Hint: Consider using the method replicateA in Applicative.
    */
   def getIntBE: Get[Int] = getByte.replicateA(4).map { bytes =>
     bytesToIntUnsafe(bytes.toArray, ByteOrder.BIG_ENDIAN)
@@ -57,6 +59,8 @@ object Get {
   /**
    * TODO 5
    * Reads an Int from input using Little Endian order.
+   *
+   * Hint: Consider using the method replicateA in Applicative.
    */
   def getIntLE: Get[Int] = getByte.replicateA(4).map { bytes =>
     bytesToIntUnsafe(bytes.toArray, ByteOrder.LITTLE_ENDIAN)

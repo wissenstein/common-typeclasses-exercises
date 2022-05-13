@@ -41,12 +41,16 @@ object Get {
   /**
    * TODO 4
    * Reads an Int from input using Big Endian order.
+   *
+   * Hint: Consider using the method replicateA in Applicative.
    */
   def getIntBE: Get[Int] = ???
 
   /**
    * TODO 5
    * Reads an Int from input using Little Endian order.
+   *
+   * Hint: Consider using the method replicateA in Applicative.
    */
   def getIntLE: Get[Int] = ???
 

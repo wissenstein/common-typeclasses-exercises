@@ -69,6 +69,14 @@ class GetSpec extends AnyFunSuite with Matchers with Configuration with FunSuite
     Get.getString(5).run(bytes) shouldBe(Right((List[Byte](2, 1), "happy")))
   }
 
+  test("combining two Gets yields a Get which runs both Gets in sequence and combines their results") {
+    val bytes = List[Byte](30, 35, 97, 86)
+    val firstGet = Get.getByte
+    val secondGet = Get.getByte
+    val combinedGet = firstGet.combine(secondGet)
+    combinedGet.run(bytes) shouldBe(Right((List[Byte](97, 86), 30 + 35)))
+  }
+
   /**
    * TODO 10
    * Write tests for instances of Monoid[Get[Int]], Eq[Get[Int]] and MonadError[Get, String]

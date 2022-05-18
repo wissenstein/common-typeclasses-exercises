@@ -114,5 +114,24 @@ object Get {
    * TODO 9
    * Monoid instance for Get.
    */
-  implicit def monoid[A: Monoid]: Monoid[Get[A]] = ???
+  implicit def monoid[A: Monoid]: Monoid[Get[A]] = new Monoid[Get[A]] {
+    /**
+     * Read the docs for combine and come up with an instance that does not
+     * alter the behaviour of any Get it is combined with.
+     *
+     * Think about what should happen to the input bytes, and what would be a
+     * suitable result.
+     */
+    override def empty: Get[A] = ???
+
+    /**
+     * Combining two Get[A] instances should yield a new Get[A] instance which
+     * runs both Gets in sequence and yields the combined result.
+     *
+     * If any of the Gets fails, the combined Get should fail with that same error.
+     *
+     * Check the tests for details.
+     */
+    override def combine(x: Get[A], y: Get[A]): Get[A] = ???
+  }
 }

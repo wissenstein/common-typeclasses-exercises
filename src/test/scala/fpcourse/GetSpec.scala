@@ -77,6 +77,22 @@ class GetSpec extends AnyFunSuite with Matchers with Configuration with FunSuite
     combinedGet.run(bytes) shouldBe(Right((List[Byte](97, 86), 30 + 35)))
   }
 
+  test("combining a failed Get with a successful Get should preserve the error") {
+    val bytes = List[Byte](30, 35, 97, 86)
+    val firstGet = Get[Byte](_ => Left("made up error"))
+    val secondGet = Get.getByte
+    val combinedGet = firstGet.combine(secondGet)
+    combinedGet.run(bytes) shouldBe(Left("made up error"))
+  }
+
+  test("combining a successful Get with a failed Get should preserve the error") {
+    val bytes = List[Byte](30, 35, 97, 86)
+    val firstGet = Get.getByte
+    val secondGet = Get[Byte](_ => Left("made up error"))
+    val combinedGet = firstGet.combine(secondGet)
+    combinedGet.run(bytes) shouldBe(Left("made up error"))
+  }
+
   /**
    * TODO 12
    * Write discipline tests for instances of Monoid, Eq and MonadError.

@@ -21,7 +21,7 @@ class GetSpec extends AnyFunSuite with Matchers with Configuration with FunSuite
 
   test("getIntLE fails on insufficient input") {
     val bytes = List[Byte](3, 1, 2)
-    Get.getIntBE.run(bytes) shouldBe(Left("Insufficient input"))
+    Get.getIntLE.run(bytes) shouldBe(Left("Insufficient input"))
   }
 
   test("getIntLE should read an int in little endian order") {

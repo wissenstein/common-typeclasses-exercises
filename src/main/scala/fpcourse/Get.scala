@@ -2,7 +2,9 @@ package fpcourse
 
 import cats.*
 import cats.given
+import cats.syntax.applicative.given
 import cats.syntax.either.given
+import cats.syntax.functor.given
 import org.scalacheck.Gen
 
 import java.nio.{ByteBuffer, ByteOrder}
@@ -59,8 +61,8 @@ object Get:
    *
    * Hint: Consider using the method replicateA in Applicative.
    */
-  def getIntBe: Get[Int] = Get { bytes =>
-    getBytes(BytesInInt, bytes)(fourBytes => fourBytes.toInt(ByteOrder.BIG_ENDIAN))
+  def getIntBe: Get[Int] = getByte.replicateA(BytesInInt) map { fourBytes =>
+    fourBytes.toInt(ByteOrder.BIG_ENDIAN)
   }
 
   /**
@@ -69,16 +71,16 @@ object Get:
    *
    * Hint: Consider using the method replicateA in Applicative.
    */
-  def getIntLe: Get[Int] = Get { bytes =>
-    getBytes(BytesInInt, bytes)(fourBytes => fourBytes.toInt(ByteOrder.LITTLE_ENDIAN))
+  def getIntLe: Get[Int] = getByte.replicateA(BytesInInt) map { pickedBytes =>
+    pickedBytes.toInt(ByteOrder.LITTLE_ENDIAN)
   }
 
   /**
    * DONE 6
    * Reads a String of n characters from input.
    */
-  def getString(n: Int): Get[String] = Get { bytes =>
-    getBytes(n, bytes)(pickedBytes => String(pickedBytes))
+  def getString(n: Int): Get[String] = getByte.replicateA(n) map { pickedBytes =>
+    new String(pickedBytes.toArray)
   }
 
   /**
@@ -86,7 +88,7 @@ object Get:
    * length of the array, so please make sure to provide 4 bytes.
    */
   private def bytesToIntUnsafe(fourBytes: Array[Byte], order: ByteOrder): Int =
-    val bb = ByteBuffer.allocate(4).order(order)
+    val bb = ByteBuffer.allocate(BytesInInt).order(order)
     bb.put(fourBytes)
     bb.flip()
     bb.getInt()
@@ -198,5 +200,5 @@ object Get:
           case Right((remainedBytes2, a2)) => Right(remainedBytes2, Monoid[A].combine(a1, a2))
     }
 
-  implicit class ByteArrayOps(val fourBytes: Array[Byte]):
-    def toInt(byteOrder: ByteOrder): Int = bytesToIntUnsafe(fourBytes, byteOrder)
+  implicit class ByteArrayOps(val fourBytes: List[Byte]):
+    def toInt(byteOrder: ByteOrder): Int = bytesToIntUnsafe(fourBytes.toArray, byteOrder)

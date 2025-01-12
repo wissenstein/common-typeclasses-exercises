@@ -1,10 +1,11 @@
 package fpcourse
 
-import cats._
-import cats.implicits._
+import cats.*
+import cats.given
 import org.scalacheck.Gen
 
 import java.nio.{ByteBuffer, ByteOrder}
+import scala.annotation.tailrec
 
 /**
  * The Get monad parses values from a list of bytes, keeping track of the
@@ -20,23 +21,36 @@ import java.nio.{ByteBuffer, ByteOrder}
 case class Get[A](run: List[Byte] => Either[String, (List[Byte], A)])
 
 object Get:
+  private val InsufficientInput = Left("Insufficient input")
+  private val BytesInInt = 4
+
   /**
-   * TODO 1
+   * DONE 1
    * Consumes n bytes of input parsing no value.
    */
-  def skip(n: Int): Get[Unit] = ???
+  def skip(n: Int): Get[Unit] = Get { bytes =>
+    if bytes.length < n then
+      InsufficientInput
+    else
+      Right(bytes.drop(n), ())
+  }
 
   /**
-   * TODO 2
+   * DONE 2
    * True if the input is fully consumed
    */
-  def isEmpty: Get[Boolean] = ???
+  def isEmpty: Get[Boolean] = Get { bytes =>
+    Right(bytes, bytes.isEmpty)
+  }
 
   /**
-   * TODO 3
+   * DONE 3
    * Reads one byte from input
    */
-  def getByte: Get[Byte] = ???
+  def getByte: Get[Byte] = Get {
+    case Nil => InsufficientInput
+    case head :: tail => Right((tail, head))
+  }
 
   /**
    * TODO 4
@@ -44,7 +58,25 @@ object Get:
    *
    * Hint: Consider using the method replicateA in Applicative.
    */
-  def getIntBE: Get[Int] = ???
+  def getIntBe: Get[Int] =
+    @tailrec
+    def go(
+      timesRemained: Int,
+      acc: Either[String, (List[Byte], Array[Byte])]
+    ): Either[String, (List[Byte], Array[Byte])] =
+      timesRemained match
+        case n if n < 1 => acc
+        case _ => go(timesRemained - 1, acc.flatMap { (remained, picked) =>
+          getByte.run(remained).map { (newRemained, newPicked) =>
+            (newRemained, picked :+ newPicked)
+          }
+        })
+
+    Get { bytes =>
+      go(BytesInInt, Right((bytes, Array()))).map { (remainedBytes, pickedBytes) =>
+        (remainedBytes, pickedBytes.toInt)
+      }
+   }
 
   /**
    * TODO 5
@@ -134,3 +166,13 @@ object Get:
      */
     override def combine(x: Get[A], y: Get[A]): Get[A] = ???
   }
+
+  private def bytesToInt(bytes: Array[Byte]) = {
+    val byteBuffer = ByteBuffer.allocate(BytesInInt)
+    byteBuffer.put(bytes)
+    byteBuffer.flip()
+    byteBuffer.getInt
+  }
+
+  implicit class ByteArrayOps(val bytes: Array[Byte]):
+    def toInt: Int = bytesToInt(bytes)

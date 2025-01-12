@@ -19,7 +19,7 @@ import java.nio.{ByteBuffer, ByteOrder}
  */
 case class Get[A](run: List[Byte] => Either[String, (List[Byte], A)])
 
-object Get {
+object Get:
   /**
    * TODO 1
    * Consumes n bytes of input parsing no value.
@@ -134,4 +134,3 @@ object Get {
      */
     override def combine(x: Get[A], y: Get[A]): Get[A] = ???
   }
-}

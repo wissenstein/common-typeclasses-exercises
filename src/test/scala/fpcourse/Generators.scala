@@ -2,7 +2,7 @@ package fpcourse
 
 import org.scalacheck.{Arbitrary, Gen}
 
-trait Generators {
+trait Generators:
   /**
    * TODO 10
    * Instance of Arbitrary for functions A => A.
@@ -24,4 +24,4 @@ trait Generators {
    */
   implicit def arbGet[A](implicit arbA: Arbitrary[A]): Arbitrary[Get[A]] =
     ???
-}
+

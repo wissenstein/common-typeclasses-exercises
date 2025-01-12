@@ -32,7 +32,7 @@ object Get:
     if bytes.length < n then
       InsufficientInput
     else
-      Right(bytes.drop(n), ())
+      Right((bytes.drop(n), ()))
   }
 
   /**
@@ -40,7 +40,7 @@ object Get:
    * True if the input is fully consumed
    */
   def isEmpty: Get[Boolean] = Get { bytes =>
-    Right(bytes, bytes.isEmpty)
+    Right((bytes, bytes.isEmpty))
   }
 
   /**
@@ -60,23 +60,23 @@ object Get:
    */
   def getIntBe: Get[Int] =
     @tailrec
-    def go(
+    def getBytes(
       timesRemained: Int,
       acc: Either[String, (List[Byte], Array[Byte])]
     ): Either[String, (List[Byte], Array[Byte])] =
       timesRemained match
         case n if n < 1 => acc
-        case _ => go(timesRemained - 1, acc.flatMap { (remained, picked) =>
+        case _ => getBytes(timesRemained - 1, acc.flatMap { (remained, picked) =>
           getByte.run(remained).map { (newRemained, newPicked) =>
             (newRemained, picked :+ newPicked)
           }
         })
 
     Get { bytes =>
-      go(BytesInInt, Right((bytes, Array()))).map { (remainedBytes, pickedBytes) =>
+      getBytes(BytesInInt, Right((bytes, Array()))).map { (remainedBytes, pickedBytes) =>
         (remainedBytes, pickedBytes.toInt)
       }
-   }
+    }
 
   /**
    * TODO 5

@@ -53,61 +53,66 @@ object Get:
   }
 
   /**
-   * TODO 4
+   * DONE 4
    * Reads an Int from input using Big Endian order.
    *
    * Hint: Consider using the method replicateA in Applicative.
    */
-  def getIntBe: Get[Int] =
-    @tailrec
-    def getBytes(
-      timesRemained: Int,
-      acc: Either[String, (List[Byte], Array[Byte])]
-    ): Either[String, (List[Byte], Array[Byte])] =
-      timesRemained match
-        case n if n < 1 => acc
-        case _ => getBytes(timesRemained - 1, acc.flatMap { (remained, picked) =>
-          getByte.run(remained).map { (newRemained, newPicked) =>
-            (newRemained, picked :+ newPicked)
-          }
-        })
-
-    Get { bytes =>
-      getBytes(BytesInInt, Right((bytes, Array()))).map { (remainedBytes, pickedBytes) =>
-        (remainedBytes, pickedBytes.toInt)
-      }
-    }
+  def getIntBe: Get[Int] = Get { bytes =>
+    getBytes(BytesInInt, bytes)(fourBytes => fourBytes.toInt(ByteOrder.BIG_ENDIAN))
+  }
 
   /**
-   * TODO 5
+   * DONE 5
    * Reads an Int from input using Little Endian order.
    *
    * Hint: Consider using the method replicateA in Applicative.
    */
-  def getIntLE: Get[Int] = ???
+  def getIntLe: Get[Int] = Get { bytes =>
+    getBytes(BytesInInt, bytes)(fourBytes => fourBytes.toInt(ByteOrder.LITTLE_ENDIAN))
+  }
 
   /**
-   * TODO 6
+   * DONE 6
    * Reads a String of n characters from input.
    */
-  def getString(n: Int): Get[String] = ???
+  def getString(n: Int): Get[String] = Get { bytes =>
+    getBytes(n, bytes)(pickedBytes => String(pickedBytes))
+  }
 
   /**
    * Helper function that turns four bytes into an Int. It doesn't check the
    * length of the array, so please make sure to provide 4 bytes.
    */
-  private def bytesToIntUnsafe(fourBytes: Array[Byte], order: ByteOrder): Int = {
+  private def bytesToIntUnsafe(fourBytes: Array[Byte], order: ByteOrder): Int =
     val bb = ByteBuffer.allocate(4).order(order)
     bb.put(fourBytes)
     bb.flip()
     bb.getInt()
-  }
+
+  private def getBytes[A](n: Int, bytes: List[Byte])(f: Array[Byte] => A): Either[String, (List[Byte], A)] =
+    @tailrec
+    def go(
+      timesRemained: Int,
+      acc: Either[String, (List[Byte], Array[Byte])]
+    ): Either[String, (List[Byte], Array[Byte])] =
+      timesRemained match
+        case n if n < 1 => acc
+        case _ => go(timesRemained - 1, acc.flatMap { (remained, picked) =>
+          getByte.run(remained).map { (newRemained, newPicked) =>
+            (newRemained, picked :+ newPicked)
+          }
+        })
+
+    go(n, Right(bytes, Array())) map { (remainedBytes, pickedBytes) =>
+      (remainedBytes, f(pickedBytes))
+    }
 
   /**
    * TODO 7
    * Instance of monad error for Get.
    */
-  implicit val monadGet: MonadError[Get, String] = new MonadError[Get, String] {
+  given monadGet: MonadError[Get, String] = new MonadError[Get, String]:
     override def flatMap[A, B](fa: Get[A])(f: A => Get[B]): Get[B] = ???
 
     override def pure[A](x: A): Get[A] = ???
@@ -128,7 +133,6 @@ object Get:
     override def raiseError[A](e: String): Get[A] = ???
 
     override def handleErrorWith[A](fa: Get[A])(f: String => Get[A]): Get[A] = ???
-  }
 
   /**
    * TODO 8
@@ -146,7 +150,7 @@ object Get:
    * TODO 9
    * Monoid instance for Get.
    */
-  implicit def monoid[A: Monoid]: Monoid[Get[A]] = new Monoid[Get[A]] {
+  implicit def monoid[A: Monoid]: Monoid[Get[A]] = new Monoid[Get[A]]:
     /**
      * Read the docs for combine and come up with an instance that does not
      * alter the behaviour of any Get it is combined with.
@@ -165,14 +169,6 @@ object Get:
      * Check the tests for details.
      */
     override def combine(x: Get[A], y: Get[A]): Get[A] = ???
-  }
 
-  private def bytesToInt(bytes: Array[Byte]) = {
-    val byteBuffer = ByteBuffer.allocate(BytesInInt)
-    byteBuffer.put(bytes)
-    byteBuffer.flip()
-    byteBuffer.getInt
-  }
-
-  implicit class ByteArrayOps(val bytes: Array[Byte]):
-    def toInt: Int = bytesToInt(bytes)
+  implicit class ByteArrayOps(val fourBytes: Array[Byte]):
+    def toInt(byteOrder: ByteOrder): Int = bytesToIntUnsafe(fourBytes, byteOrder)

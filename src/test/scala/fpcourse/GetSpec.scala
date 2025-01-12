@@ -12,66 +12,66 @@ class GetSpec extends AnyFreeSpec, Matchers, Configuration, FreeSpecDiscipline, 
   "getIntBe" - {
     "fails on insufficient input" in {
       val bytes = List[Byte](3, 1, 2)
-      Get.getIntBe.run(bytes) shouldBe (Left("Insufficient input"))
+      Get.getIntBe.run(bytes) shouldBe Left("Insufficient input")
     }
     "should read an int in big endian order" in {
       val bytes = List[Byte](3, 1, 2, 1, 5, 3, 2)
-      Get.getIntBe.run(bytes) shouldBe (Right(List[Byte](5, 3, 2), 50397697))
+      Get.getIntBe.run(bytes) shouldBe Right(List[Byte](5, 3, 2), 50397697)
     }
   }
 
   "getIntLe" - {
     "fails on insufficient input" in {
       val bytes = List[Byte](3, 1, 2)
-      Get.getIntLE.run(bytes) shouldBe (Left("Insufficient input"))
+      Get.getIntLe.run(bytes) shouldBe Left("Insufficient input")
     }
     "getIntLE should read an int in little endian order" in {
       val bytes = List[Byte](3, 1, 2, 1, 5, 3, 2)
-      Get.getIntLE.run(bytes) shouldBe (Right(List[Byte](5, 3, 2), 16908547))
+      Get.getIntLe.run(bytes) shouldBe Right(List[Byte](5, 3, 2), 16908547)
     }
   }
 
   "getByte" - {
     "fails on insufficient input" in {
       val bytes = List[Byte]()
-      Get.getByte.run(bytes) shouldBe (Left("Insufficient input"))
+      Get.getByte.run(bytes) shouldBe Left("Insufficient input")
     }
     "should read a byte" in {
       val bytes = List[Byte](4, 3, 2)
-      Get.getByte.run(bytes) shouldBe (Right(List[Byte](3, 2), 4))
+      Get.getByte.run(bytes) shouldBe Right(List[Byte](3, 2), 4)
     }
   }
 
   "isEmpty" - {
     "should be true when input is fully consumed" in {
       val bytes = List[Byte]()
-      Get.isEmpty.run(bytes) shouldBe (Right((bytes, true)))
+      Get.isEmpty.run(bytes) shouldBe Right((bytes, true))
     }
     "should be false when there is input remaining" in {
       val bytes = List[Byte](5)
-      Get.isEmpty.run(bytes) shouldBe (Right((bytes, false)))
+      Get.isEmpty.run(bytes) shouldBe Right((bytes, false))
     }
   }
 
   "skip" - {
     "fails on insufficient input" in {
       val bytes = List[Byte](5, 3)
-      Get.skip(3).run(bytes) shouldBe (Left("Insufficient input"))
+      Get.skip(3).run(bytes) shouldBe Left("Insufficient input")
     }
     "consumes bytes and returns no result" in {
       val bytes = List[Byte](5, 3, 8, 1)
-      Get.skip(3).run(bytes) shouldBe (Right((List[Byte](1), ())))
+      Get.skip(3).run(bytes) shouldBe Right((List[Byte](1), ()))
     }
   }
 
   "getString" - {
     "fails on insufficient input" in {
       val bytes = List[Byte](1, 6, 2, 1)
-      Get.getString(5).run(bytes) shouldBe (Left("Insufficient input"))
+      Get.getString(5).run(bytes) shouldBe Left("Insufficient input")
     }
     "should read a string of N characters" in {
       val bytes = List[Byte](104, 97, 112, 112, 121, 2, 1)
-      Get.getString(5).run(bytes) shouldBe (Right((List[Byte](2, 1), "happy")))
+      Get.getString(5).run(bytes) shouldBe Right((List[Byte](2, 1), "happy"))
     }
   }
 
@@ -81,21 +81,21 @@ class GetSpec extends AnyFreeSpec, Matchers, Configuration, FreeSpecDiscipline, 
       val firstGet = Get.getByte
       val secondGet = Get.getByte
       val combinedGet = firstGet.combine(secondGet)
-      combinedGet.run(bytes) shouldBe (Right((List[Byte](97, 86), 30 + 35)))
+      combinedGet.run(bytes) shouldBe Right((List[Byte](97, 86), 30 + 35))
     }
     "a failed Get with a successful Get should preserve the error" in {
       val bytes = List[Byte](30, 35, 97, 86)
       val firstGet = Get[Byte](_ => Left("made up error"))
       val secondGet = Get.getByte
       val combinedGet = firstGet.combine(secondGet)
-      combinedGet.run(bytes) shouldBe (Left("made up error"))
+      combinedGet.run(bytes) shouldBe Left("made up error")
     }
     "a successful Get with a failed Get should preserve the error" in {
       val bytes = List[Byte](30, 35, 97, 86)
       val firstGet = Get.getByte
       val secondGet = Get[Byte](_ => Left("made up error"))
       val combinedGet = firstGet.combine(secondGet)
-      combinedGet.run(bytes) shouldBe (Left("made up error"))
+      combinedGet.run(bytes) shouldBe Left("made up error")
     }
   }
 

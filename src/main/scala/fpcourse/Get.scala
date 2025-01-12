@@ -82,7 +82,7 @@ object Get {
 
     override def tailRecM[A, B](a: A)(f: A => Get[Either[A, B]]): Get[B] = {
       Get { bytes =>
-        Monad[Either[String, *]].tailRecM((bytes, a)) { case (bytes, a) =>
+        Monad[[X] =>> Either[String, X]].tailRecM((bytes, a)) { case (bytes, a) =>
           f(a).run(bytes).map { case (bytes, eab) =>
             eab match {
               case Right(b) => Right((bytes, b))

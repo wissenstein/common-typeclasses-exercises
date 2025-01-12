@@ -100,6 +100,15 @@ class GetSpec extends AnyFreeSpec, Matchers, Configuration, FreeSpecDiscipline, 
   }
 
 /**
- * TODO 12
+ * DONE 12
  * Write discipline tests for instances of Monoid, Eq and MonadError.
  */
+  "Laws" - {
+    checkAll("Eq[Get[Int]]", EqTests[Get[Int]].eqv)
+    checkAll("Eq[Get[String]]", EqTests[Get[String]].eqv)
+    checkAll("Eq[Get[Byte]]", EqTests[Get[Byte]].eqv)
+    checkAll("MonadError[Get]", MonadErrorTests[Get, String].monadError[Int, Int, Int])
+    checkAll("Monoid[Get[Byte]]", MonoidTests[Get[Byte]].monoid)
+    checkAll("Monoid[Get[String]]", MonoidTests[Get[String]].monoid)
+    checkAll("Monoid[Get[Int]]", MonoidTests[Get[Int]].monoid)
+  }

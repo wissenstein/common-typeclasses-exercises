@@ -2,6 +2,7 @@ package fpcourse
 
 import cats.*
 import cats.given
+import cats.syntax.either.given
 import org.scalacheck.Gen
 
 import java.nio.{ByteBuffer, ByteOrder}
@@ -109,13 +110,19 @@ object Get:
     }
 
   /**
-   * TODO 7
+   * DONE 7
    * Instance of monad error for Get.
    */
   given monadGet: MonadError[Get, String] = new MonadError[Get, String]:
-    override def flatMap[A, B](fa: Get[A])(f: A => Get[B]): Get[B] = ???
+    override def flatMap[A, B](fa: Get[A])(f: A => Get[B]): Get[B] = Get { bytes =>
+      fa.run(bytes) match
+        case Left(s) => Left(s)
+        case Right((remainedBytes, a)) => f(a).run(remainedBytes)
+    }
 
-    override def pure[A](x: A): Get[A] = ???
+    override def pure[A](x: A): Get[A] = Get { bytes =>
+      Right((bytes, x))
+    }
 
     override def tailRecM[A, B](a: A)(f: A => Get[Either[A, B]]): Get[B] = {
       Get { bytes =>
@@ -130,12 +137,18 @@ object Get:
       }
     }
 
-    override def raiseError[A](e: String): Get[A] = ???
+    override def raiseError[A](e: String): Get[A] = Get { _ =>
+      Left(e)
+    }
 
-    override def handleErrorWith[A](fa: Get[A])(f: String => Get[A]): Get[A] = ???
+    override def handleErrorWith[A](fa: Get[A])(f: String => Get[A]): Get[A] = Get { bytes =>
+      fa.run(bytes) match
+        case Left(s) => f(s).run(bytes)
+        case r @ Right(_) => r
+    }
 
   /**
-   * TODO 8
+   * DONE 8
    * Instance of Eq for Get. A full comparison is impossible, so we just
    * compare on a given number of List[Byte] samples and assume that
    * if both Get compute the same result, they are equal.
@@ -144,10 +157,17 @@ object Get:
    * a generator of List[Byte], then sample it several times (e.g. 32)
    * and check that running both Gets yields the same result every time.
    */
-  implicit def eqGet[A: Eq]: Eq[Get[A]] = ???
+  implicit def eqGet[A: Eq]: Eq[Get[A]] = (x: Get[A], y: Get[A]) =>
+    val sampleCount = 32
+    val byteGenerator: Gen[List[Byte]] = Gen.listOf(Gen.choose(0, 255).map(_.toByte))
+    Iterator
+      .continually(byteGenerator.sample)
+      .take(sampleCount)
+      .flatten
+      .forall(bytes => x.run(bytes) === y.run(bytes))
 
   /**
-   * TODO 9
+   * DONE 9
    * Monoid instance for Get.
    */
   implicit def monoid[A: Monoid]: Monoid[Get[A]] = new Monoid[Get[A]]:
@@ -158,7 +178,9 @@ object Get:
      * Think about what should happen to the input bytes, and what would be a
      * suitable result.
      */
-    override def empty: Get[A] = ???
+    override def empty: Get[A] = Get { bytes =>
+      Right(bytes, Monoid[A].empty)
+    }
 
     /**
      * Combining two Get[A] instances should yield a new Get[A] instance which
@@ -168,7 +190,13 @@ object Get:
      *
      * Check the tests for details.
      */
-    override def combine(x: Get[A], y: Get[A]): Get[A] = ???
+    override def combine(x: Get[A], y: Get[A]): Get[A] = Get { bytes =>
+      x.run(bytes) match
+        case l @ Left(_) => l
+        case Right((remainedBytes1, a1)) => y.run(remainedBytes1) match
+          case l @ Left(_) => l
+          case Right((remainedBytes2, a2)) => Right(remainedBytes2, Monoid[A].combine(a1, a2))
+    }
 
   implicit class ByteArrayOps(val fourBytes: Array[Byte]):
     def toInt(byteOrder: ByteOrder): Int = bytesToIntUnsafe(fourBytes, byteOrder)
